@@ -23,8 +23,8 @@ class HotelPatch(BaseModel):
 
 # DB stub
 hotels_db = {
-    1: {'title': 'Old Hotel Title', 'name': 'Old Hotel Name'},
-    2: {'title': 'Anothe Hotel Title', 'name': 'Anothe Hotel Name'},
+    1: {'id': 1, 'title': 'Old Hotel Title', 'name': 'Old Hotel Name'},
+    2: {'id': 2, 'title': 'Anothe Hotel Title', 'name': 'Anothe Hotel Name'},
 }
 
 @app.get('/hotels')
@@ -38,6 +38,7 @@ def hotel_update(hotel_id: int, hotel: HotelPut):
         # logger.error(f'Отсутсвует запись {hotel_id} в базе данных')
         raise HTTPException(status_code=404, detail=f'Отсутсвует запись {hotel_id} в базе данных')
     hotels_db[hotel_id] = hotel.model_dump()
+    
     return {"hotel_id": hotel_id, "hotel": hotels_db[hotel_id]} 
     
 
