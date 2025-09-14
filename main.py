@@ -32,7 +32,9 @@ def hotels_get_info():
     return({'message:': 'Hotels List'})
 
 
-@app.put('/hotel/{hotel_id}')
+@app.put('/hotel/{hotel_id}', 
+         summary='Полное обновление записи',
+         description='Данная функция обновляет полностью запись об отела в базе данных')
 def hotel_update(hotel_id: int, hotel: HotelPut):
     if hotel_id not in hotels_db:
         # logger.error(f'Отсутсвует запись {hotel_id} в базе данных')
@@ -41,8 +43,7 @@ def hotel_update(hotel_id: int, hotel: HotelPut):
     
     return {"hotel_id": hotel_id, "hotel": hotels_db[hotel_id]} 
     
-
-@app.patch('/hotel/{hotel_id}')
+@app.patch('/hotel/{hotel_id}', summary='Частичное обновление записи')
 def hotel_partial_update(hotel_id: int, hotel: HotelPatch):
     if hotel_id not in hotels_db:
         # logger.error(f'Отсутсвует запись {hotel_id} в базе данных')
