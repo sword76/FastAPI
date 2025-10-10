@@ -20,6 +20,12 @@ class HotelPatch(BaseModel):
 hotels_db = {
     1: {'id': 1, 'title': 'Old Hotel Title', 'name': 'Old Hotel Name'},
     2: {'id': 2, 'title': 'Another Hotel Title', 'name': 'Anothe Hotel Name'},
+    3: {'id': 3, 'title': 'Yet Another Hotel Title', 'name': 'Yes Anothe Hotel Name'},
+    4: {'id': 4, 'title': 'Poor Imagination Hotel Title', 'name': 'Poor Imagination Hotel Title'},
+    5: {'id': 5, 'title': 'Hotel Title 1', 'name': 'Hotel Title 1'},
+    6: {'id': 6, 'title': 'Hotel Title 2', 'name': 'Hotel Title 2'},
+    7: {'id': 7, 'title': 'Hotel Title 3', 'name': 'Hotel Title 3'},
+    8: {'id': 8, 'title': 'Hotel Title 4', 'name': 'Hotel Title 4'},
 }
  
 @router.get('/sync/{id}')
@@ -40,7 +46,9 @@ async def async_func(id: int):
             summary='Получение данных об отеле/отелях',
             description='Получить полных список отелей, либо конкретном отеле по ID или названию')
 def hotels_get_info(id: int | None = Query(default = None, description = "ID Отеля"), 
-                    title: str | None = Query(default= None, description = "Название отеля")):
+                    title: str | None = Query(default = None, description = "Название отеля"),
+                    page: int | None = Query(default = 1, description="Страница"),
+                    per_page: int | None = Query(default = 3, description="Позиций на странице")):
     if id is not None:
         hotel = hotels_db.get(id)
         if not hotel:
@@ -52,8 +60,21 @@ def hotels_get_info(id: int | None = Query(default = None, description = "ID О�
             if hotel['title'].lower() == title.lower():
                 return hotel
         raise HTTPException(status_code=404, detail=f'Отсутсвует запись {title} в БД')
+
+    # Getting sorted hotels_db keys
+    hotels_db_keys = sorted(hotels_db.keys())
+    start = (page - 1) * per_page
+    end = start + per_page
+    if end > len(hotels_db_keys):
+        end = len(hotels_db_keys.length())
     
-    return list(hotels_db.values())
+    # Getting prompted page keys
+    page_keys = hotels_db_keys[start:end]
+
+    # Forming selected keys dictionary
+    paged_hotels = {key: hotels_db[key] for key in page_keys}
+
+    return list(paged_hotels.values())
 
 
 @router.put('/{hotel_hoid}',
