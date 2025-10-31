@@ -47,8 +47,19 @@ async def async_func(id: int):
             description='Получить полных список отелей, либо конкретном отеле по ID или названию')
 def hotels_get_info(id: int | None = Query(default = None, description = "ID Отеля"), 
                     title: str | None = Query(default = None, description = "Название отеля"),
-                    page: int | None = Query(default = 1, description="Страница"),
-                    per_page: int | None = Query(default = 3, description="Позиций на странице")):
+                    page: int | None = Query(default = None, gt = 0, description="Страница"),
+                    per_page: int | None = Query(default = None, gt = 0, ls = 30, description="Позиций на странице"))
+    
+    global hotels_db
+    hotels_ = []
+
+    for hotel in hotels_db:
+        if id and hotels_db["id"]:
+            hotels_.append(hotels_db[id].values())
+        
+        if title and hotels_db["title"]:
+            hotels_.append(hotels_db[title].values())      
+
     if id is not None:
         hotel = hotels_db.get(id)
         if not hotel:
@@ -66,7 +77,7 @@ def hotels_get_info(id: int | None = Query(default = None, description = "ID О�
     start = (page - 1) * per_page
     end = start + per_page
     if end > len(hotels_db_keys):
-        end = len(hotels_db_keys.length())
+        end = len(hotels_db_keys)
     
     # Getting prompted page keys
     page_keys = hotels_db_keys[start:end]
