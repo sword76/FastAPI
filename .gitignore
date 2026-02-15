@@ -56,3 +56,8 @@ logs/
 # Database
 *.db
 *.sqlite
+
+# AI Agents
+GEMINI.md
+CLAUDE.md
+.claude
