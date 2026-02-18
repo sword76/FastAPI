@@ -17,3 +17,10 @@ class BaseRepositary:
         result = await self.session.execute(query)
 
         return result.scalars().one_or_none()
+
+    async def add_one(self, **data):
+        new_instance = self.model(**data)
+        self.session.add(new_instance)
+        await self.session.flush()
+        return new_instance
+
