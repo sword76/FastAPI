@@ -1,6 +1,7 @@
 from fastapi import Query, Body, Path, HTTPException, APIRouter
 
-from sqlalchemy import insert, select
+from repositories.hotels import HotelsRepository
+from sqlalchemy import insert, select, func
 
 from src.api.dependencies import PaginationDep
 
@@ -11,6 +12,7 @@ from src.schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
+
 @router.get("",
             summary='Получение данных об отеле/отелях',
             description='Получить полных список отелей, либо конкретном отеле по названию или местоположению')
@@ -19,27 +21,15 @@ async def get_hotels(
         title: str | None = Query(None, description="Название отеля"),
         location: str | None = Query(None, description="Местоположение отеля")
 ):
-    per_page = pagination.per_page or 5 
+    per_page = pagination.per_page or 5
+
     async with async_session_maker() as session:
-        query = select(HotelsOrm)
- 
-        if title:
-            query = query.filter_by(title=title)
-            query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
-
-        if location:
-            query = query.filter(HotelsOrm.location.ilike(f"%{location}%"))
-
-        query = (query
-            .limit(per_page)
-            .offset(per_page * (pagination.page-1))
+        return await HotelsRepository(session).get_all(
+            location=location, 
+            title=title, 
+            limit=per_page, 
+            offset=per_page * (pagination.page-1)
         )
-        result = await session.execute(query)
-        hotels = result.scalars().all()
-        
-        # print(type(hotels), hotels)
-        
-        return(hotels)
     
     # if pagination.page and pagination.per_page:
     #    return hotels[pagination.per_page * (pagination.page-1):][:pagination.per_page]
@@ -77,7 +67,6 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
          description='Данная функция обновляет полностью запись об отела в базе данных',
          )
 def edit_hotel(hotel_id: int, hotel_data: Hotel):
-    global hotels
     hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
     hotel["title"] = hotel_data.title
     hotel["name"] = hotel_data.name
@@ -93,7 +82,7 @@ def partially_edit_hotel(
         hotel_id: int,
         hotel_data: HotelPATCH,
 ):
-    global hotels
+    
     hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
     if hotel_data.title:
         hotel["title"] = hotel_data.title
@@ -101,8 +90,8 @@ def partially_edit_hotel(
         hotel["name"] = hotel_data.name
     return {"status": "OK"}
 
+
 @router.delete("/{hotel_id}")
 def delete_hotel(hotel_id: int):
-    global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     return {"status": "OK"}
