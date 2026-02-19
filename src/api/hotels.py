@@ -14,7 +14,7 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("",
-            summary='Получение данных об отеле/отелях',
+            summary='Получение данных об отелях',
             description='Получить полных список отелей, либо конкретном отеле по названию или местоположению')
 async def get_hotels(
         pagination: PaginationDep,
@@ -31,9 +31,14 @@ async def get_hotels(
             offset=per_page * (pagination.page-1)
         )
     
-    # if pagination.page and pagination.per_page:
-    #    return hotels[pagination.per_page * (pagination.page-1):][:pagination.per_page]
-    
+
+@router.get("/hotel_id",
+            summary='Получение данных об отеле по ID',
+            description='Получить все данных по отелю на основании его ID')
+async def get_hotels(hotel_id: int):
+    async with async_session_maker() as session:
+        return await HotelsRepository(session).get_one_or_none(id=hotel_id)
+
 
 @router.post("")
 async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
