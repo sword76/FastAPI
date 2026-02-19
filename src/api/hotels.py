@@ -40,21 +40,21 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     "1": {
         "summary": "Сочи",
         "value": {
-            "title": "Отель Сочи 5 звезд у моря",
-            "location": "ул. Моря, 1",
+            "title": "Отель Солнцеу моря 5 звезд",
+            "location": "Сочи, ул. Моря, 1",
         }
     },
     "2": {
         "summary": "Дубай",
         "value": {
-            "title": "Отель Дубай У фонтана",
-            "location": "ул. Шейха, 2",
+            "title": "Отель Рай й фонтана",
+            "location": "Дубай, ул. Шейха, 2",
         }
     }
 })
 ):
     async with async_session_maker() as session:
-        hotel = await HotelsRepository(session).add_one(**hotel_data.model_dump())
+        hotel = await HotelsRepository(session).add_one(hotel_data)
         await session.commit()
 
     return {"status": "OK", "data": hotel}
@@ -64,10 +64,13 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
          summary='Полное обновление записи',
          description='Данная функция обновляет полностью запись об отела в базе данных',
          )
-def edit_hotel(hotel_id: int, hotel_data: Hotel):
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    hotel["title"] = hotel_data.title
-    hotel["name"] = hotel_data.name
+async def edit_hotel(hotel_id: int, hotel_data: Hotel):
+    async with async_session_maker() as session:
+        repo = HotelsRepository(session)
+        if not await repo.get_one_or_none(id=hotel_id):
+            raise HTTPException(status=404, detail="Hotel no found")
+        await repo.edit(hotel_data, id=hotel_id)
+        await session.commit()
     return {"status": "OK"}
     
     
@@ -90,6 +93,11 @@ def partially_edit_hotel(
 
 
 @router.delete("/{hotel_id}")
-def delete_hotel(hotel_id: int):
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+async def delete_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        repo = HotelsRepository(session) 
+        if not await repo.get_one_or_none(id=hotel_id):
+            raise HTTPException(status_code=404, detail="Hotel not found")
+        await repo.delete(id=hotel_id)
+        await session.commit() 
     return {"status": "OK"}
