@@ -79,16 +79,16 @@ async def edit_hotel(hotel_id: int, hotel_data: Hotel):
     summary="Частичное обновление данных об отеле",
     description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
             )
-def partially_edit_hotel(
+async def partially_edit_hotel(
         hotel_id: int,
         hotel_data: HotelPATCH,
 ):
-    
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    if hotel_data.title:
-        hotel["title"] = hotel_data.title
-    if hotel_data.name:
-        hotel["name"] = hotel_data.name
+    async with async_session_maker() as session:
+        repo = HotelsRepository(session)
+        if not await repo.get_one_or_none(id=hotel_id):
+            raise HTTPException(status=404, detail="Hotel no found")
+        await repo.edit(hotel_data, exclude_unset=True, id=hotel_id)
+        await session.commit()
     return {"status": "OK"}
 
 
