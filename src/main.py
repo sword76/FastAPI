@@ -8,14 +8,16 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.api.hotels import router as router_hotels
+from src.api.auth import router as router_auth
 
 # Logging settings 
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 # logger = logging.getLogger(__name__)
 
 app = FastAPI()
-app.include_router(router_hotels)
 
+app.include_router(router_auth)
+app.include_router(router_hotels)
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():

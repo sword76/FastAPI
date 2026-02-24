@@ -1,6 +1,6 @@
 from fastapi import Query, Body, Path, HTTPException, APIRouter
 
-from repositories.hotels import HotelsRepository
+from src.repositories.hotels import HotelsRepository
 from sqlalchemy import select, func
 
 from src.api.dependencies import PaginationDep
@@ -8,7 +8,7 @@ from src.api.dependencies import PaginationDep
 from src.db import async_session_maker
 from src.models.hotels import HotelsOrm
 
-from src.schemas.hotels import Hotel, HotelPATCH
+from src.schemas.hotels import Hotel, HotelAdd, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -40,20 +40,22 @@ async def get_hotels(hotel_id: int):
         return await HotelsRepository(session).get_one_or_none(id=hotel_id)
 
 
-@router.post("")
-async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+@router.post("",
+            summary='Добавление отеля',
+            description='Добавить отель с полями title и location')
+async def create_hotel(hotel_data: HotelAdd = Body(openapi_examples={
     "1": {
         "summary": "Сочи",
-        "value": {
+        "value": { 
             "title": "Отель Солнцеу моря 5 звезд",
-            "location": "Сочи, ул. Моря, 1",
+            "location": "г. Сочи, ул. Моря, 1",
         }
     },
     "2": {
         "summary": "Дубай",
         "value": {
             "title": "Отель Рай й фонтана",
-            "location": "Дубай, ул. Шейха, 2",
+            "location": "г. Дубай, ул. Шейха, 2",
         }
     }
 })
@@ -69,7 +71,7 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
          summary='Полное обновление записи',
          description='Данная функция обновляет полностью запись об отела в базе данных',
          )
-async def edit_hotel(hotel_id: int, hotel_data: Hotel):
+async def edit_hotel(hotel_id: int, hotel_data: HotelAdd):
     async with async_session_maker() as session:
         repo = HotelsRepository(session)
         if not await repo.get_one_or_none(id=hotel_id):
