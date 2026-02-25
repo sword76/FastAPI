@@ -75,7 +75,7 @@ async def edit_hotel(hotel_id: int, hotel_data: HotelAdd):
     async with async_session_maker() as session:
         repo = HotelsRepository(session)
         if not await repo.get_one_or_none(id=hotel_id):
-            raise HTTPException(status=404, detail="Hotel no found")
+            raise HTTPException(status_code=404, detail="Hotel no found")
         await repo.edit(hotel_data, id=hotel_id)
         await session.commit()
     return {"status": "OK"}
@@ -93,7 +93,7 @@ async def partially_edit_hotel(
     async with async_session_maker() as session:
         repo = HotelsRepository(session)
         if not await repo.get_one_or_none(id=hotel_id):
-            raise HTTPException(status=404, detail="Hotel no found")
+            raise HTTPException(status_code=404, detail="Hotel no found")
         await repo.edit(hotel_data, exclude_unset=True, id=hotel_id)
         await session.commit()
     return {"status": "OK"}
