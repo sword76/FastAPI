@@ -45,16 +45,10 @@ async def register_user(
 
 @router.get("/only_auth")
 async def only_auth(
-    data: UserRequestAdd,
     request: Request,      
 ):
     async with async_session_maker() as session:
-        request = UsersRepository(session)
-        if not request:
-            raise HTTPException(status_code=401, detail="User with this email doesn't exist")
-        if not AuthService().verify_password(data.password, request.hashed_password):
-            raise HTTPException(status_code=401, detail="Wrong password") 
-        token = await request.get_one_or_none(email=data.email)
+        token = request.cookies.get("access_token", None)
         print(type(token))
-        return {"token": token}
+        return token
         
