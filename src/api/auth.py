@@ -1,21 +1,20 @@
-from fastapi import APIRouter, HTTPException
-
-from pwdlib import PasswordHash
+from fastapi import APIRouter, HTTPException, Response
 
 from src.repositories.user import UsersRepository
 from src.db import async_session_maker
 from src.schemas.users import UserRequestAdd, UserAdd
+from src.services.auth import AuthService
+
 
 router = APIRouter(prefix="/auth", tags =["Авторизация и аутентификация"])
 
-pwd_context = PasswordHash.recommended()
 
 @router.post("/register")
 async def register_user(
     data: UserRequestAdd,
 ):
     # Hashing password
-    hashed_password = pwd_context.hash(data.password)
+    hashed_password = AuthService().hash_password(data.password)
 
     new_user_data = UserAdd(email=data.email, hashed_password=hashed_password, first_name=data.first_name, last_name=data.last_name)
     async with async_session_maker() as session:
@@ -27,3 +26,19 @@ async def register_user(
         await session.commit()
 
     return {"status": "OK"}
+
+
+@router.post("/login")
+async def register_user(
+    data: UserRequestAdd,
+    responce: Response,
+):
+    async with async_session_maker() as session:
+        user = await UsersRepository(session).get_one_or_none(email=data.email)
+        if not user:
+            raise HTTPException(status_code=401, detail="User with this email doesn't exist")
+        if not AuthService().verify_password(data.password, user.hashed_password):
+            raise HTTPException(status_code=401, detail="Wrong password")   
+        access_token = AuthService().create_access_token({"user_id": user.id})
+        responce.set_cookie(key="access_token", value=access_token)
+        return {"access_token": access_token}
