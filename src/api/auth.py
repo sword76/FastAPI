@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response, Request
 
+from src.api.dependencies import UserIdDep
 from src.repositories.user import UsersRepository
 from src.db import async_session_maker
 from src.schemas.users import UserRequestAdd, UserAdd
@@ -43,12 +44,20 @@ async def register_user(
         return {"access_token": access_token}
 
 
-@router.get("/only_auth")
-async def only_auth(
-    request: Request,      
+@router.get("/me")
+async def get_me( 
+    user_id: UserIdDep,   
 ):
     async with async_session_maker() as session:
-        token = request.cookies.get("access_token", None)
-        print(type(token))
-        return token
+        user = await UsersRepository(session).get_one_or_none(id=user_id)
+        return user
         
+
+@router.post("/logout")
+async def logout_user( 
+    user_id: UserIdDep,
+    responce: Response,   
+):
+    responce.delete_cookie(key="access_token")
+    return {"status": "OK"}
+    
