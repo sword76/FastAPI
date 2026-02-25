@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Request
 
 from src.repositories.user import UsersRepository
 from src.db import async_session_maker
@@ -15,7 +15,6 @@ async def register_user(
 ):
     # Hashing password
     hashed_password = AuthService().hash_password(data.password)
-
     new_user_data = UserAdd(email=data.email, hashed_password=hashed_password, first_name=data.first_name, last_name=data.last_name)
     async with async_session_maker() as session:
         repo = UsersRepository(session)
@@ -42,3 +41,20 @@ async def register_user(
         access_token = AuthService().create_access_token({"user_id": user.id})
         responce.set_cookie(key="access_token", value=access_token)
         return {"access_token": access_token}
+
+
+@router.get("/only_auth")
+async def only_auth(
+    data: UserRequestAdd,
+    request: Request,      
+):
+    async with async_session_maker() as session:
+        request = UsersRepository(session)
+        if not request:
+            raise HTTPException(status_code=401, detail="User with this email doesn't exist")
+        if not AuthService().verify_password(data.password, request.hashed_password):
+            raise HTTPException(status_code=401, detail="Wrong password") 
+        token = await request.get_one_or_none(email=data.email)
+        print(type(token))
+        return {"token": token}
+        
