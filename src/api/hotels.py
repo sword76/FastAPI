@@ -28,7 +28,7 @@ async def get_hotels(
             location=location, 
             title=title, 
             limit=per_page, 
-            offset=per_page * (pagination.page-1)
+            offset=per_page * (pagination.page-1),
         )
     
 
@@ -45,14 +45,14 @@ async def get_hotels(hotel_id: int):
             description='Добавить отель с полями title и location')
 async def create_hotel(hotel_data: HotelAdd = Body(openapi_examples={
     "1": {
-        "summary": "Сочи",
+        "summary": "Отель в Сочи",
         "value": { 
             "title": "Отель Солнцеу моря 5 звезд",
             "location": "г. Сочи, ул. Моря, 1",
         }
     },
     "2": {
-        "summary": "Дубай",
+        "summary": "Отель в Дубай",
         "value": {
             "title": "Отель Рай й фонтана",
             "location": "г. Дубай, ул. Шейха, 2",
@@ -68,7 +68,7 @@ async def create_hotel(hotel_data: HotelAdd = Body(openapi_examples={
 
 
 @router.put("/{hotel_id}",
-         summary='Полное обновление записи',
+         summary='Полное обновление записи об отеле',
          description='Данная функция обновляет полностью запись об отела в базе данных',
          )
 async def edit_hotel(hotel_id: int, hotel_data: HotelAdd):
@@ -84,7 +84,7 @@ async def edit_hotel(hotel_id: int, hotel_data: HotelAdd):
 @router.patch(
     "/{hotel_id}",
     summary="Частичное обновление данных об отеле",
-    description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
+    description="Тут мы частично обновляем данные об отеле: можно отправить name, а можно title",
             )
 async def partially_edit_hotel(
         hotel_id: int,

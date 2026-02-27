@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependencies import UserIdDep
 from src.repositories.user import UsersRepository
@@ -31,7 +31,7 @@ async def register_user(
 @router.post("/login")
 async def register_user(
     data: UserRequestAdd,
-    responce: Response,
+    response: Response,
 ):
     async with async_session_maker() as session:
         user = await UsersRepository(session).get_one_or_none(email=data.email)
@@ -40,7 +40,7 @@ async def register_user(
         if not AuthService().verify_password(data.password, user.hashed_password):
             raise HTTPException(status_code=401, detail="Wrong password")   
         access_token = AuthService().create_access_token({"user_id": user.id})
-        responce.set_cookie(key="access_token", value=access_token)
+        response.set_cookie(key="access_token", value=access_token)
         return {"access_token": access_token}
 
 
@@ -54,10 +54,7 @@ async def get_me(
         
 
 @router.post("/logout")
-async def logout_user( 
-    user_id: UserIdDep,
-    responce: Response,   
-):
-    responce.delete_cookie(key="access_token")
+async def logout_user(response: Response):
+    response.delete_cookie("access_token")
     return {"status": "OK"}
     

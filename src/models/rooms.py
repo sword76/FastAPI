@@ -12,3 +12,4 @@ class RoomsOrm(BaseModel):
     description: Mapped[str | None]
     price: Mapped[int]
     quantity: Mapped[int]
+    
