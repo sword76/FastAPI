@@ -42,7 +42,7 @@ async def create_room(db: DBDep,
 })
 ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-    room = await db.rooms.add_one(_room_data)
+    room = await db.rooms.add(_room_data)
     await db.commit()
 
     return {"status": "OK", "data": room}

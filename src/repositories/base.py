@@ -26,7 +26,7 @@ class BaseRepositary:
             return None
         return self.schema.model_validate(model)
 
-    async def add_one(self, data: BaseModel):
+    async def add(self, data: BaseModel):
         new_instance = insert(self.model).values(**data.model_dump()).returning(self.model)
         result = await self.session.execute(new_instance)
         model = result.scalars().one()

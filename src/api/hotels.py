@@ -1,7 +1,6 @@
 from fastapi import Query, Body, APIRouter
 
 from src.repositories.hotels import HotelsRepository
-from sqlalchemy import select, func
 
 from src.api.dependencies import DBDep, PaginationDep
 
@@ -14,10 +13,10 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
             summary='Получение данных об отелях',
             description='Получить полных список отелей, либо конкретном отеле по названию или местоположению')
 async def get_hotels(
-        pagination: PaginationDep,
-        db: DBDep,
-        title: str | None = Query(None, description="Название отеля"),
-        location: str | None = Query(None, description="Местоположение отеля")
+                    pagination: PaginationDep,
+                    db: DBDep,
+                    title: str | None = Query(None, description="Название отеля"),
+                    location: str | None = Query(None, description="Местоположение отеля")
 ):
     per_page = pagination.per_page or 5
 
@@ -25,7 +24,7 @@ async def get_hotels(
         location=location, 
         title=title, 
         limit=per_page, 
-        offset=per_page * (pagination.page-1),
+        offset=per_page*(pagination.page-1),
     )
     
 
@@ -57,7 +56,7 @@ async def create_hotel(db: DBDep,
     }
 })
 ):
-    hotel = await db.hotels.add_one(hotel_data)
+    hotel = await db.hotels.add(hotel_data)
     await db.commit()
 
     return {"status": "OK", "data": hotel}

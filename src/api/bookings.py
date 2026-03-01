@@ -1,9 +1,18 @@
-from fastapi import Body, APIRouter, HTTPException
+from datetime import date
 
-from src.api.dependencies import DBDep, UserIdDep
+from fastapi import APIRouter, HTTPException, Query
+
+from src.api.dependencies import DBDep, PaginationDep, UserIdDep
 from src.schemas.bookings import BookingAdd, BookingAddRequest
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
+
+
+@router.get("/me",
+            summary='Получение данных о всех бронированиях авторизированного пользователя',
+            description='Получение данных о бронированиях по ID пользователя')
+async def get_user_bookings(db: DBDep, user_id: UserIdDep):
+    return await db.bookings.get_filtered(user_id=user_id)
 
 
 @router.get("/{booking_id}",
@@ -30,6 +39,30 @@ async def add_booking(db: DBDep,
         date_to=booking_data.date_to,
         price=room.price,
     )
-    booking = await db.bookings.add_one (_booking)
+    booking = await db.bookings.add(_booking)
     await db.commit()
     return {"status": "OK", "data": booking}
+
+
+@router.get("",
+            summary='Получение данных о всех бронированиях',
+            description='Получение данных о бронированиях без фильтрации')
+async def get_bookings(
+                    pagination: PaginationDep,
+                    db: DBDep,
+                    room_id: int | None = Query(None, description="ID номера"),
+                    user_id: int | None = Query(None, description="ID пользователя"),
+                    date_from: date | None = Query(None, description="Дата заезда"),
+                    date_to: date | None = Query(None, description="Дата выезда"),
+                    price: int | None = Query(None, description="Цена бронирования")
+):
+    per_page = pagination.per_page or 5
+
+    return await db.bookings.get_all(
+        room_id=room_id,
+        user_id=user_id,
+        date_from=date_from,
+        date_to=date_to,
+        price=price,
+        offset=per_page*(pagination.page-1),
+    )
