@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, ConfigDict
 
 
@@ -16,4 +15,3 @@ class Hotel(HotelAdd):
 class HotelPatch(BaseModel):
     title: str | None = None
     location: str | None = None
-
