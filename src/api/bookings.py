@@ -1,5 +1,3 @@
-from datetime import date
-
 from fastapi import APIRouter, HTTPException, Query
 
 from src.api.dependencies import DBDep, PaginationDep, UserIdDep
