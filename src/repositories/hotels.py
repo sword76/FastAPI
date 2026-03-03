@@ -11,43 +11,28 @@ from src.schemas.hotels import Hotel
 
 class HotelsRepository(BaseRepositary):
     model = HotelsOrm
-    schema = Hotel 
-    
-    async def get_all(self, 
-                      location, 
-                      title, 
-                      limit, 
-                      offset,
-     ) -> list[Hotel]:
-
-            query = select(HotelsOrm)
-    
-            if title:
-                query = query.filter(func.lower(HotelsOrm.title).contains(title.strip().lower()))
-
-            if location:
-                query = query.filter(func.lower(HotelsOrm.location).contains(location.strip().lower()))
-
-            query = (query
-                .limit(limit)
-                .offset(offset))
-
-            print(query.compile(compile_kwargs={"literal_binds": True}))
-            
-            result = await self.session.execute(query)
-            
-            return [Hotel.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
+    schema = Hotel
 
     async def get_filtered_by_time(
          self,
+         location,
+         title,
          date_from: date,
          date_to: date,
-    ):
+         limit,
+         offset,
+    ) -> list[Hotel]:
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to)
-        hotels_ids_to_get = (
-             select(RoomsOrm.hotel_id)
-             .select_from(RoomsOrm)
-             .filter(RoomsOrm.id.in_(rooms_ids_to_get))
+        hotels_ids_subquery = (
+            select(RoomsOrm.hotel_id)
+            .select_from(RoomsOrm)
+            .filter(RoomsOrm.id.in_(rooms_ids_to_get))
         )
-        return await self.get_filtered(HotelsOrm.id.in_(hotels_ids_to_get))
-    
+        query = select(HotelsOrm).filter(HotelsOrm.id.in_(hotels_ids_subquery))
+        if title:
+            query = query.filter(func.lower(HotelsOrm.title).contains(title.strip().lower()))
+        if location:
+            query = query.filter(func.lower(HotelsOrm.location).contains(location.strip().lower()))
+        query = query.limit(limit).offset(offset)
+        result = await self.session.execute(query)
+        return [Hotel.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
