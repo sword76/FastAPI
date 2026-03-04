@@ -6,3 +6,4 @@ from src.schemas.bookings import Booking
 class BookingsRepository(BaseRepositary):
     model = BookingsOrm
     schema = Booking
+    

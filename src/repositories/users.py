@@ -15,3 +15,4 @@ class UsersRepository(BaseRepositary):
         result = await self.session.execute(query)
         model = result.scalars().one()
         return UserWithHashedPassword.model_validate(model)
+    

@@ -15,3 +15,4 @@ class RoomsFacilitiesOrm(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     rooms_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"))
     facilities_id: Mapped[int] = mapped_column(ForeignKey("facilities.id"))
+    
