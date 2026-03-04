@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import Body, APIRouter, Query
 
 from src.api.dependencies import DBDep
+from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatch, RoomPatchRequest
 
 
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 
 @router.get("/{hotel_id}/rooms",
-            summary='Получение данных об комнатах в отеле',
+            summary='Получение данных об номерах в отеле',
             description='Получение списка всех номеров по отелю с его ID')
 async def get_rooms(
         db: DBDep, 
@@ -22,8 +23,8 @@ async def get_rooms(
 
 
 @router.post("/{hotel_id}/rooms",
-            summary='Добавление комнаты в отель',
-            description='Добавить комнату в отель по ID отеля')
+            summary='Добавление номера в отель',
+            description='Добавить номер в отель по ID отеля')
 async def create_room(db: DBDep, 
                       hotel_id: int, 
                       room_data: RoomAddRequest = Body(openapi_examples={
@@ -33,7 +34,8 @@ async def create_room(db: DBDep,
             "title": "Аппартаменты, 2 чел.",
             "description": "Аппартаменты с видом на море",
             "price": 123,
-            "quantity": 3, 
+            "quantity": 2,
+            "facilities_ids": [1, 2],
         }
     },
     "2": {
@@ -42,15 +44,20 @@ async def create_room(db: DBDep,
             "title": "Номер, 2 ком., 4 чел.",
             "description": "Двухкомнатный номер на четыре человека с видом во двор",
             "price": 150,
-            "quantity": 3, 
+            "quantity": 3,
+            "facilities_ids": [1, 2],
         }
     }
 })
 ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
     room = await db.rooms.add(_room_data)
-    await db.commit()
 
+    rooms_facilities_data = [RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids]
+
+    await db.rooms_facilities.add_batch(rooms_facilities_data)
+    await db.commit()
+    
     return {"status": "OK", "data": room}
 
 

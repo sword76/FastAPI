@@ -21,7 +21,7 @@ async def get_facilities(
 @router.post("",
             summary='Добавление удобства',
             description='Добавить удобство, только поле title')
-async def create_hotel(db: DBDep,
+async def create_facility(db: DBDep,
                        facility_data: FacilityAdd = Body(openapi_examples={
     "1": {
         "summary": "Фен",

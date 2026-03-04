@@ -39,6 +39,11 @@ class BaseRepositary:
         return self.schema.model_validate(model)
     
 
+    async def add_batch(self, data: list[BaseModel]):
+        new_instance = insert(self.model).values([item.model_dump() for item in data])
+        await self.session.execute(new_instance)
+    
+
     async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
         query = (
             update(self.model)
