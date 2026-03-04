@@ -32,6 +32,15 @@ class BaseRepositary:
         return self.schema.model_validate(model)
 
 
+    async def get_list_or_none_batch(self, **filter_by):
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        models = result.scalars().all()
+        if not models:
+            return None
+        return [self.schema.model_validate(model) for model in models]
+
+
     async def add(self, data: BaseModel):
         new_instance = insert(self.model).values(**data.model_dump()).returning(self.model)
         result = await self.session.execute(new_instance)

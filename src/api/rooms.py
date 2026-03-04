@@ -29,10 +29,10 @@ async def create_room(db: DBDep,
                       hotel_id: int, 
                       room_data: RoomAddRequest = Body(openapi_examples={
     "1": {
-        "summary": "Аппартаменты на два человека",
+        "summary": "Апартаменты на два человека",
         "value": { 
-            "title": "Аппартаменты, 2 чел.",
-            "description": "Аппартаменты с видом на море",
+            "title": "Апартаменты, 2 чел.",
+            "description": "Апартаменты с видом на море",
             "price": 123,
             "quantity": 2,
             "facilities_ids": [1, 2],
@@ -65,8 +65,12 @@ async def create_room(db: DBDep,
             summary='Получение данных о номере по ID',
             description='Получить все данных о номере на основании его ID')
 async def get_room(db: DBDep, hotel_id: int, room_id: int):
-    return await db.rooms.get_one_or_none(hotel_id=hotel_id, id=room_id)
+    room_facility_data = await db.rooms_facilities.get_list_or_none_batch(room_id=room_id)
+    room_data = await db.rooms.get_one_or_none(hotel_id=hotel_id, id=room_id)
+    facilities_ids = [rf.facility_id for rf in room_facility_data] if room_facility_data else []
     
+    return {**room_data.model_dump(), "facilities_ids": facilities_ids}
+
 
 @router.put("/{hotel_id}/rooms/{room_id}",
          summary='Полное обновление записи о номере',
