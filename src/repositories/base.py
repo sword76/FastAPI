@@ -1,11 +1,12 @@
 from sqlalchemy import select, insert, update, delete as rec_delete
 from pydantic import BaseModel
 
+from src.repositories.mapper.base import DataMapper
+
 
 class BaseRepositary:
     model = None
-    schema: BaseModel = None 
-
+    mapper: DataMapper = None
 
     def __init__(self, session):
         self.session = session
@@ -16,7 +17,7 @@ class BaseRepositary:
                  .filter(*filter)
                  .filter_by(**filter_by))
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model) for model in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
 
     async def get_all(self, *args, **kwargs):
@@ -29,7 +30,7 @@ class BaseRepositary:
         model = result.scalars().one_or_none()
         if model is None:
             return None
-        return self.schema.model_validate(model)
+        return self.mapper.model_to_domain_entity(model)
 
 
     async def get_list_or_none_batch(self, **filter_by):
@@ -38,14 +39,14 @@ class BaseRepositary:
         models = result.scalars().all()
         if not models:
             return None
-        return [self.schema.model_validate(model) for model in models]
+        return [self.mapper.map_to_domain_entity(model) for model in models]
 
 
     async def add(self, data: BaseModel):
         new_instance = insert(self.model).values(**data.model_dump()).returning(self.model)
         result = await self.session.execute(new_instance)
         model = result.scalars().one()
-        return self.schema.model_validate(model)
+        return self.mapper.map_to_domain_entity(model)
     
 
     async def add_batch(self, data: list[BaseModel]):
